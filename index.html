@@ -86,8 +86,22 @@
       <button>Trigger a Global Error</button>
     </section>
   </main>
-
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
   <script>
+  window.TrackJS && TrackJS.install({ 
+    token: "f1bccaf3f4454dd59a4f9495f5ee9c0f"
+    // for more configuration options, see https://docs.trackjs.com
+  });
+  </script>
+  <script>
+
+    class CalcError extends Error{
+      constructor(message,type = 'General'){
+        super(message);
+        this.name = 'calcError';
+        this.type = type;
+      }
+    }
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -95,13 +109,110 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      
+      try{
+        //check if user left an input empty
+        if (firstNum ===''|| secondNum ===''){
+          //throw: generates an error
+          throw new CalcError('Incomplete input(s)!', 'Input Error');
+        }if (isNaN(firstNum)|| isNaN(secondNum) ){
+          throw new CalcError('Invalid num(s)','Input Error' );
+        }
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      }catch(err){
+        if (err instanceof CalcError){
+          console.error(`CalcError(${err.type}): ${err.message}`);
+          output.textContent = `Error: ${err.message}`;
+        }else{
+          console.error('Unexpected Error:', err);
+          output.textContent = `Error: ${err.message}`;
+        }
+      }finally{
+        //finally: in all cases (even if errors)
+        console.log('Calc attempted');
+      }
+
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
-
-    // Start your code here
-    // You may move this JS to another file if you wish
+   
+    errorBtns.forEach(btn =>{
+      const label = btn.textContent.trim();
+      btn.addEventListener('click',() =>{
+        switch(label){
+          case 'Console Log':
+            console.log('Console Log Demo');
+            break;
+          case 'Console Error':
+            console.error('Console Error Demo');
+            break;
+          case 'Console Count':
+            console.count('Count Button')
+            break;
+          case 'Console Warn':
+            console.warn('Console Warn Button');
+            break;
+          case 'Console Assert':
+            console.assert( 2 === 3, {
+              number: 2,
+              errorMsg: 'The number does not equal 3'
+            });
+            break;
+          case 'Console Clear':
+            console.clear();
+            console.log('Console was cleared');
+            break;
+          case 'Console Dir':
+            console.dir(btn);
+            break;
+          case 'Console dirxml':
+            console.dirxml(btn);
+            break;
+          case 'Console Group Start':
+            console.group('Console.group');
+            break;
+          case 'Console Group End':
+            console.groupEnd();
+            break;
+          case 'Console Table':
+            console.table([
+              { name: 'andrea', age: 20 },
+              { name: 'marvin', age: 21 }
+            ]);
+            break;
+          case 'Start Timer':
+            console.time('Timer');
+            break;
+          case 'End Timer':
+            console.timeEnd('Timer');
+            break;
+          case 'Console Trace':
+            function deepest(){
+              console.trace('console.trace');
+            }
+            function deeper(){
+              deepest();
+            }
+            function deep(){
+              deeper();
+            }
+            function handleBtnClick(){
+              deep();
+            }
+            handleBtnClick();
+            break;
+          case 'Trigger a Global Error':
+            function handleBtnsClick(){
+              boom;
+            }
+            handleBtnsClick();
+            break;
+        }
+      });
+    });
+    window.addEventListener("error", (event) => {
+      console.log("Error happened:(");
+    });
   </script>
 </body>
 
